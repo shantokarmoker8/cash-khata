@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jul 15, 2026 at 05:00 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: sql104.infinityfree.com
+-- Generation Time: Aug 16, 2026 at 08:35 AM
+-- Server version: 11.4.12-MariaDB
+-- PHP Version: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -18,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `cash_khata`
+-- Database: `if0_42371632_ss`
 --
 
 -- --------------------------------------------------------
@@ -35,6 +36,13 @@ CREATE TABLE `cash_transactions` (
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `cash_transactions`
+--
+
+INSERT INTO `cash_transactions` (`id`, `type`, `amount`, `note`, `created_by`, `created_at`) VALUES
+(1, 'add', '200000.00', 'Moldon', 1, '2026-08-02 11:44:58');
 
 -- --------------------------------------------------------
 
@@ -95,6 +103,28 @@ CREATE TABLE `products` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `description`, `purchase_price`, `sale_price`, `stock`, `low_stock_alert`, `supplier_id`, `created_at`) VALUES
+(1, 'Vivo y20 lcd', '', '850.00', '950.00', 2, 5, 1, '2026-08-02 11:47:33'),
+(2, 'Oppo a18 lcd', '', '1000.00', '1100.00', 4, 5, 1, '2026-08-02 11:51:43'),
+(3, 'Oppo A16 lcd', 'Kaiku', '1300.00', '1500.00', 3, 5, 1, '2026-08-03 06:35:14'),
+(4, 'Realme C33 lcd', '', '900.00', '1000.00', 1, 5, NULL, '2026-08-03 06:39:41'),
+(5, 'Realme C75 Lcd', '', '1000.00', '1100.00', 1, 5, 1, '2026-08-03 06:40:40'),
+(6, 'Realme C17 lcd', '', '950.00', '1050.00', 1, 5, 1, '2026-08-03 06:41:41'),
+(7, 'Realme C20 lcd', '', '900.00', '1000.00', 1, 5, 1, '2026-08-03 06:42:49'),
+(8, 'Realme c3 lcd', '', '900.00', '1000.00', 1, 5, 1, '2026-08-03 06:43:24'),
+(9, 'Realme 5i lcd', '', '900.00', '1000.00', 2, 5, 1, '2026-08-03 06:44:05'),
+(10, 'Realme c65 lcd', '', '1050.00', '1150.00', 1, 5, 1, '2026-08-03 06:44:46'),
+(11, 'Realme c21y lcd', '', '850.00', '950.00', 1, 5, 1, '2026-08-03 06:45:20'),
+(12, 'Oppo a5s lcd', '', '900.00', '1000.00', 1, 5, 1, '2026-08-03 06:46:10'),
+(13, 'Oppo a1k lcd', '', '850.00', '950.00', 1, 5, 1, '2026-08-03 06:46:50'),
+(14, 'Oppo a92 lcd', '', '1300.00', '1400.00', 1, 5, NULL, '2026-08-03 06:47:27'),
+(15, 'Oppo a52 lcd', '', '1000.00', '1100.00', 1, 5, 1, '2026-08-03 06:48:03'),
+(16, 'Oppo F17 lcd', 'Coppy', '1000.00', '1100.00', 1, 5, 1, '2026-08-03 06:49:38');
+
 -- --------------------------------------------------------
 
 --
@@ -113,6 +143,30 @@ CREATE TABLE `purchases` (
   `due_amount` decimal(15,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `purchases`
+--
+
+INSERT INTO `purchases` (`id`, `product_id`, `supplier_id`, `quantity`, `purchase_price`, `total_amount`, `payment_type`, `paid_amount`, `due_amount`, `created_at`) VALUES
+(1, 1, 1, 2, '850.00', '1700.00', 'cash', '1700.00', '0.00', '2026-08-02 11:47:33'),
+(2, 2, 1, 2, '900.00', '1800.00', 'cash', '1800.00', '0.00', '2026-08-02 11:51:43'),
+(3, 3, 1, 2, '850.00', '1700.00', 'cash', '1700.00', '0.00', '2026-08-03 06:35:14'),
+(4, 3, 1, 1, '1300.00', '1300.00', 'cash', '1300.00', '0.00', '2026-08-03 06:37:21'),
+(5, 4, NULL, 1, '900.00', '900.00', 'cash', '900.00', '0.00', '2026-08-03 06:39:41'),
+(6, 5, 1, 1, '1000.00', '1000.00', 'cash', '1000.00', '0.00', '2026-08-03 06:40:40'),
+(7, 6, 1, 1, '950.00', '950.00', 'cash', '950.00', '0.00', '2026-08-03 06:41:41'),
+(8, 7, 1, 1, '900.00', '900.00', 'cash', '900.00', '0.00', '2026-08-03 06:42:49'),
+(9, 8, 1, 1, '900.00', '900.00', 'cash', '900.00', '0.00', '2026-08-03 06:43:24'),
+(10, 9, 1, 2, '900.00', '1800.00', 'cash', '1800.00', '0.00', '2026-08-03 06:44:05'),
+(11, 10, 1, 1, '1050.00', '1050.00', 'cash', '1050.00', '0.00', '2026-08-03 06:44:46'),
+(12, 11, 1, 1, '850.00', '850.00', 'cash', '850.00', '0.00', '2026-08-03 06:45:20'),
+(13, 12, 1, 1, '900.00', '900.00', 'cash', '900.00', '0.00', '2026-08-03 06:46:10'),
+(14, 13, 1, 1, '850.00', '850.00', 'cash', '850.00', '0.00', '2026-08-03 06:46:50'),
+(15, 14, NULL, 1, '1300.00', '1300.00', 'cash', '1300.00', '0.00', '2026-08-03 06:47:27'),
+(16, 15, 1, 1, '1000.00', '1000.00', 'cash', '1000.00', '0.00', '2026-08-03 06:48:03'),
+(17, 16, 1, 1, '1000.00', '1000.00', 'cash', '1000.00', '0.00', '2026-08-03 06:49:38'),
+(18, 2, 1, 2, '1000.00', '2000.00', 'cash', '2000.00', '0.00', '2026-08-03 06:51:13');
 
 -- --------------------------------------------------------
 
@@ -156,7 +210,7 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`id`, `business_name`, `business_address`, `business_phone`, `cash_balance`, `opening_cash_set`, `language`, `updated_at`) VALUES
-(1, 'my Business', '', '', 0.00, 0, 'en', '2026-07-15 14:42:59');
+(1, 'my Business', '', '', '178100.00', 1, 'en', '2026-08-03 06:57:42');
 
 -- --------------------------------------------------------
 
@@ -172,6 +226,13 @@ CREATE TABLE `suppliers` (
   `due` decimal(15,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `suppliers`
+--
+
+INSERT INTO `suppliers` (`id`, `name`, `mobile`, `address`, `due`, `created_at`) VALUES
+(1, 'Ak Telicom', '01927432364', '', '0.00', '2026-08-02 11:47:21');
 
 -- --------------------------------------------------------
 
@@ -295,7 +356,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cash_transactions`
 --
 ALTER TABLE `cash_transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `customers`
@@ -319,13 +380,13 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `purchases`
 --
 ALTER TABLE `purchases`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `sales`
@@ -343,7 +404,7 @@ ALTER TABLE `settings`
 -- AUTO_INCREMENT for table `suppliers`
 --
 ALTER TABLE `suppliers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `supplier_payments`
