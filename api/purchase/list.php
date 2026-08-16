@@ -9,7 +9,7 @@ try {
     $sql = "
         SELECT pu.id, pu.product_id, pu.quantity, pu.purchase_price, pu.total_amount, pu.payment_type,
                pu.paid_amount, pu.due_amount, pu.created_at, pu.supplier_id,
-               pr.name AS product_name, pr.description AS product_description,
+               pr.name AS product_name, pr.description AS product_description, pr.category AS category,
                pr.sale_price AS product_sale_price, pr.low_stock_alert,
                s.name AS supplier_name
         FROM purchases pu

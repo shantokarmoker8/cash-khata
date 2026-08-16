@@ -6,6 +6,7 @@ header('Content-Type: application/json');
 $input = json_decode(file_get_contents('php://input'), true);
 
 $productName    = trim($input['product_name'] ?? '');
+$category       = trim($input['category'] ?? '');
 $description    = trim($input['description'] ?? '');
 $purchasePrice  = (float) ($input['purchase_price'] ?? 0);
 $salePrice      = (float) ($input['sale_price'] ?? 0);
@@ -14,8 +15,14 @@ $lowStockAlert  = 5;
 $supplierId     = isset($input['supplier_id']) && $input['supplier_id'] !== '' ? (int) $input['supplier_id'] : null;
 $paidAmount     = (float) ($input['paid_amount'] ?? 0);
 
+$allowedCategories = ['mobile', 'accessory', 'part'];
+
 if ($productName === '') {
     echo json_encode(["status" => "error", "message" => "Product Name is required"]);
+    exit;
+}
+if (!in_array($category, $allowedCategories, true)) {
+    echo json_encode(["status" => "error", "message" => "Please select a valid Category (Mobiles / Accessories / Parts)"]);
     exit;
 }
 if ($quantity <= 0) {
@@ -71,11 +78,11 @@ try {
 
     if ($product) {
         $productId = $product['id'];
-        $pdo->prepare("UPDATE products SET stock = stock + ?, description = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
-            ->execute([$quantity, $description, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $productId]);
+        $pdo->prepare("UPDATE products SET stock = stock + ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
+            ->execute([$quantity, $description, $category, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $productId]);
     } else {
-        $insertProd = $pdo->prepare("INSERT INTO products (name, description, purchase_price, sale_price, stock, low_stock_alert, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $insertProd->execute([$productName, $description, $purchasePrice, $salePrice, $quantity, $lowStockAlert, $supplierId]);
+        $insertProd = $pdo->prepare("INSERT INTO products (name, description, category, purchase_price, sale_price, stock, low_stock_alert, supplier_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertProd->execute([$productName, $description, $category, $purchasePrice, $salePrice, $quantity, $lowStockAlert, $supplierId]);
         $productId = $pdo->lastInsertId();
     }
 

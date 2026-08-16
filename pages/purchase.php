@@ -30,6 +30,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 <thead>
                     <tr>
                         <th><?php echo lang('product_name'); ?></th>
+                        <th>Category</th>
                         <th><?php echo lang('supplier'); ?></th>
                         <th><?php echo lang('quantity'); ?></th>
                         <th><?php echo lang('purchase_price'); ?></th>
@@ -40,7 +41,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     </tr>
                 </thead>
                 <tbody id="purchaseTableBody">
-                    <tr><td colspan="8" class="text-center py-4 text-muted">Loading...</td></tr>
+                    <tr><td colspan="9" class="text-center py-4 text-muted">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -60,6 +61,14 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
             <label class="ck-label"><?php echo lang('product_name'); ?></label>
             <input type="text" class="ck-input" id="pProductName" required>
+
+            <label class="ck-label mt-2">Category</label>
+            <select class="ck-select" id="pCategorySelect" required>
+                <option value="">-- Select Category --</option>
+                <option value="mobile">Mobiles</option>
+                <option value="accessory">Accessories</option>
+                <option value="part">Parts</option>
+            </select>
 
             <label class="ck-label mt-2"><?php echo lang('description'); ?> <span class="text-muted">(optional)</span></label>
             <input type="text" class="ck-input" id="pDescription">
@@ -237,6 +246,17 @@ require_once __DIR__ . '/../includes/auth_check.php';
         return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 
+    function categoryBadge(cat) {
+        const map = {
+            mobile: { label: 'Mobile', bg: '#eff6ff', color: '#2563eb' },
+            accessory: { label: 'Accessory', bg: '#fdf4ff', color: '#a21caf' },
+            part: { label: 'Part', bg: '#f0fdf4', color: '#16a34a' }
+        };
+        const c = map[cat];
+        if (!c) return '<span class="badge-due" style="background:#f1f5f9;color:#64748b;">Not Set</span>';
+        return `<span class="badge-cash" style="background:${c.bg};color:${c.color};">${c.label}</span>`;
+    }
+
     /* ============ LOAD PURCHASE LIST ============ */
     async function loadPurchaseList(search = '') {
         const tbody = document.getElementById('purchaseTableBody');
@@ -245,11 +265,11 @@ require_once __DIR__ . '/../includes/auth_check.php';
             const result = await res.json();
 
             if (result.status !== 'success') {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Failed to load</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Failed to load</td></tr>`;
                 return;
             }
             if (result.data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><?php echo lang('no_data'); ?></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted"><?php echo lang('no_data'); ?></td></tr>`;
                 return;
             }
 
@@ -266,6 +286,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 return `
                 <tr>
                     <td data-label="<?php echo lang('product_name'); ?>" style="font-weight:500;">${p.product_name}</td>
+                    <td data-label="Category">${categoryBadge(p.category)}</td>
                     <td data-label="<?php echo lang('supplier'); ?>">${p.supplier_name ? p.supplier_name : '<span class="text-muted">—</span>'}</td>
                     <td data-label="<?php echo lang('quantity'); ?>">${p.quantity}</td>
                     <td data-label="<?php echo lang('purchase_price'); ?>">${money(p.purchase_price)}</td>
@@ -282,7 +303,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
             `;
             }).join('');
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Error loading data</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-danger">Error loading data</td></tr>`;
         }
     }
 
@@ -367,6 +388,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
         document.getElementById('purchaseModalTitle').textContent = '<?php echo lang('edit'); ?> Purchase';
         document.getElementById('purchaseEditId').value = p.id;
         document.getElementById('pProductName').value = p.product_name;
+        document.getElementById('pCategorySelect').value = p.category || '';
         document.getElementById('pDescription').value = p.product_description || '';
         document.getElementById('pPurchasePrice').value = p.purchase_price;
         document.getElementById('pSalePrice').value = p.product_sale_price;
@@ -466,6 +488,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
             if (editId) {
                 const payload = {
                     id: editId,
+                    category: document.getElementById('pCategorySelect').value,
                     description: document.getElementById('pDescription').value.trim(),
                     purchase_price: document.getElementById('pPurchasePrice').value,
                     sale_price: document.getElementById('pSalePrice').value,
@@ -486,6 +509,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
             } else {
                 const payload = {
                     product_name: document.getElementById('pProductName').value.trim(),
+                    category: document.getElementById('pCategorySelect').value,
                     description: document.getElementById('pDescription').value.trim(),
                     purchase_price: document.getElementById('pPurchasePrice').value,
                     sale_price: document.getElementById('pSalePrice').value,
