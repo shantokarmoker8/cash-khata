@@ -20,6 +20,12 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="salesSearch" placeholder="<?php echo lang('search'); ?> products...">
             </div>
+            <div class="category-filter-row mt-2" id="categoryFilterRow">
+                <button type="button" class="ck-btn ck-btn-outline cat-filter-btn active" data-cat="all">All</button>
+                <button type="button" class="ck-btn ck-btn-outline cat-filter-btn" data-cat="mobile">Mobile</button>
+                <button type="button" class="ck-btn ck-btn-outline cat-filter-btn" data-cat="accessory">Accessory</button>
+                <button type="button" class="ck-btn ck-btn-outline cat-filter-btn" data-cat="part">Part</button>
+            </div>
         </div>
     </div>
 
@@ -34,6 +40,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                         <thead>
                             <tr>
                                 <th><?php echo lang('product_name'); ?></th>
+                                <th>Category</th>
                                 <th><?php echo lang('description'); ?></th>
                                 <th><?php echo lang('sale_price'); ?></th>
                                 <th><?php echo lang('stock'); ?></th>
@@ -41,7 +48,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                             </tr>
                         </thead>
                         <tbody id="productTableBody">
-                            <tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr>
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -282,6 +289,21 @@ require_once __DIR__ . '/../includes/auth_check.php';
     @media (max-width: 767px) {
         .table-scroll-box { padding: 4px 4px 12px; }
     }
+
+    .category-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .cat-filter-btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+    .cat-filter-btn.active {
+        background: var(--primary, #2563eb);
+        border-color: var(--primary, #2563eb);
+        color: #fff;
+    }
 </style>
 
 <script>
@@ -291,9 +313,21 @@ require_once __DIR__ . '/../includes/auth_check.php';
     let historyMode = false;
     let returnUnitPrice = 0;
     let returnMaxQty = 0;
+    let currentCategory = 'all';
 
     function money(v) {
         return '৳' + parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function categoryBadge(cat) {
+        const map = {
+            mobile: { label: 'Mobile', bg: '#eff6ff', color: '#2563eb' },
+            accessory: { label: 'Accessory', bg: '#fdf4ff', color: '#a21caf' },
+            part: { label: 'Part', bg: '#f0fdf4', color: '#16a34a' }
+        };
+        const c = map[cat];
+        if (!c) return '<span class="badge-due" style="background:#f1f5f9;color:#64748b;">Not Set</span>';
+        return `<span class="badge-cash" style="background:${c.bg};color:${c.color};">${c.label}</span>`;
     }
 
     function formatDate(dateStr) {
@@ -308,7 +342,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
             const res = await fetch('api/sales/form_data.php');
             const result = await res.json();
             if (result.status !== 'success') {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load products</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load products</td></tr>`;
                 return;
             }
 
@@ -316,18 +350,22 @@ require_once __DIR__ . '/../includes/auth_check.php';
             customersCache = result.data.customers;
 
             let filtered = productsCache;
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
             if (search.trim() !== '') {
-                filtered = productsCache.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
             }
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><?php echo lang('no_data'); ?></td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><?php echo lang('no_data'); ?></td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td data-label="<?php echo lang('product_name'); ?>" style="font-weight:500;">${p.name}</td>
+                    <td data-label="Category">${categoryBadge(p.category)}</td>
                     <td data-label="<?php echo lang('description'); ?>">${p.description ? p.description : '<span class="text-muted">—</span>'}</td>
                     <td data-label="<?php echo lang('sale_price'); ?>" style="font-weight:600;">${money(p.sale_price)}</td>
                     <td data-label="<?php echo lang('stock'); ?>">${p.stock}</td>
@@ -337,7 +375,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 </tr>
             `).join('');
         } catch (err) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error loading products</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Error loading products</td></tr>`;
         }
     }
 
@@ -660,6 +698,15 @@ require_once __DIR__ . '/../includes/auth_check.php';
         document.getElementById('toggleHistoryText').textContent = historyMode ? 'View Products' : 'View History';
         this.querySelector('i').className = historyMode ? 'fa-solid fa-box' : 'fa-solid fa-clock-rotate-left';
         if (historyMode) loadSalesHistory();
+    });
+
+    document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.dataset.cat;
+            loadProductTable(document.getElementById('salesSearch').value);
+        });
     });
 
     let searchTimer;
