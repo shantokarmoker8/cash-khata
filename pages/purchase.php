@@ -87,6 +87,9 @@ require_once __DIR__ . '/../includes/auth_check.php';
             <label class="ck-label mt-2"><?php echo lang('quantity'); ?></label>
             <input type="number" min="1" class="ck-input" id="pQuantity" required>
 
+            <label class="ck-label mt-2">Low Stock Alert <span class="text-muted">(optional — leave empty for no alert)</span></label>
+            <input type="number" min="1" class="ck-input" id="pLowStockAlert" placeholder="e.g. 5">
+
             <label class="ck-label mt-2"><?php echo lang('supplier'); ?></label>
             <div class="d-flex gap-2">
                 <select class="ck-select" id="pSupplierSelect">
@@ -168,14 +171,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
 <!-- ============ PAGE-SPECIFIC STYLES ============ -->
 <style>
-    /* ==========================================================
-       পুরো Page Exactly Display-এর সমান Height-এ Fix — কোনো Outer
-       Page Scroll থাকবে না, তাই কোনো নাড়াচাড়াই হবে না।
-       100svh (Small Viewport Height) ব্যবহার করা হয়েছে কারণ এটা
-       Mobile Browser-এর Address Bar দেখা/লুকানোর কারণে পরিবর্তিত হয়
-       না — সবসময় একটা স্থির মান থাকে, তাই কোনো Reflow/Wobble হয় না।
-       (যেসব পুরনো Browser 100svh বোঝে না, সেখানে Fallback 100vh)
-       ========================================================== */
     #purchasePage {
         display: flex;
         flex-direction: column;
@@ -191,14 +186,13 @@ require_once __DIR__ . '/../includes/auth_check.php';
     }
 
     .purchase-header-block {
-        flex-shrink: 0; /* Header+Search সবসময় নিজের স্বাভাবিক Height নেয় */
+        flex-shrink: 0;
     }
 
     .purchase-table-card {
         flex: 1 1 auto;
-        min-height: 0;      /* Flex Child-কে সঠিকভাবে Shrink/Scroll করতে দেয় */
-        overflow: hidden;   /* Rounded Corner ঠিক রাখে — ভেতরের Sticky Header
-                                বা Table-এর কোনো Square Edge আর কোণা কেটে ফেলবে না */
+        min-height: 0;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
     }
@@ -208,8 +202,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-
-        /* Scrollbar সম্পূর্ণ লুকানো (Scroll কাজ করবে ঠিকই) */
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -217,15 +209,12 @@ require_once __DIR__ . '/../includes/auth_check.php';
         display: none;
     }
 
-    /* Desktop/Tablet: Table Header উপরে আটকে থাকবে */
     .table-scroll-box .ck-table thead th {
         position: sticky;
         top: 0;
         z-index: 5;
     }
 
-    /* Mobile: Card আকারে রূপান্তরিত Row-গুলোর চারপাশে সামান্য Gap
-       রাখা হচ্ছে যাতে Rounded Corner পরিষ্কারভাবে দেখা যায় */
     @media (max-width: 767px) {
         .table-scroll-box { padding: 4px 4px 12px; }
     }
@@ -286,7 +275,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 return `
                 <tr>
                     <td data-label="<?php echo lang('product_name'); ?>" style="font-weight:500;">${p.product_name}</td>
-                    <td data-label="Category">${categoryBadge(p.category)}</td>
+                    <td data-label="Category">${categoryBadge(p.category)}<div style="font-size:10px;color:var(--text-muted);margin-top:3px;">${p.low_stock_alert !== null ? 'Alert at ' + p.low_stock_alert : 'No Alert'}</div></td>
                     <td data-label="<?php echo lang('supplier'); ?>">${p.supplier_name ? p.supplier_name : '<span class="text-muted">—</span>'}</td>
                     <td data-label="<?php echo lang('quantity'); ?>">${p.quantity}</td>
                     <td data-label="<?php echo lang('purchase_price'); ?>">${money(p.purchase_price)}</td>
@@ -365,6 +354,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
         document.getElementById('paymentBlock').style.display = 'block';
         document.getElementById('pPaidAmount').value = '';
         document.getElementById('pDueDisplay').textContent = '৳0.00';
+        document.getElementById('pLowStockAlert').value = 5;
         recalcTotal();
 
         await loadSuppliersDropdown();
@@ -393,6 +383,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
         document.getElementById('pPurchasePrice').value = p.purchase_price;
         document.getElementById('pSalePrice').value = p.product_sale_price;
         document.getElementById('pQuantity').value = p.quantity;
+        document.getElementById('pLowStockAlert').value = p.low_stock_alert !== null && p.low_stock_alert !== undefined ? p.low_stock_alert : '';
 
         await loadSuppliersDropdown(p.supplier_id);
 
@@ -493,6 +484,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     purchase_price: document.getElementById('pPurchasePrice').value,
                     sale_price: document.getElementById('pSalePrice').value,
                     quantity: document.getElementById('pQuantity').value,
+                    low_stock_alert: document.getElementById('pLowStockAlert').value,
                     supplier_id: document.getElementById('pSupplierSelect').value
                 };
                 const res = await fetch('api/purchase/update.php', {
@@ -503,6 +495,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     ckToast('success', result.message);
                     document.getElementById('purchaseFormOverlay').style.display = 'none';
                     loadPurchaseList();
+                    if (typeof loadLowStockAlert === 'function') loadLowStockAlert();
                 } else {
                     ckToast('error', result.message);
                 }
@@ -514,6 +507,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     purchase_price: document.getElementById('pPurchasePrice').value,
                     sale_price: document.getElementById('pSalePrice').value,
                     quantity: document.getElementById('pQuantity').value,
+                    low_stock_alert: document.getElementById('pLowStockAlert').value,
                     supplier_id: document.getElementById('pSupplierSelect').value,
                     paid_amount: document.getElementById('pPaidAmount').value || 0
                 };
@@ -526,6 +520,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     document.getElementById('purchaseFormOverlay').style.display = 'none';
                     updateCashBalance(result.cash_balance);
                     loadPurchaseList();
+                    if (typeof loadLowStockAlert === 'function') loadLowStockAlert();
                 } else {
                     ckToast('error', result.message);
                 }

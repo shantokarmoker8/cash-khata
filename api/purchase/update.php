@@ -10,6 +10,7 @@ $description   = trim($input['description'] ?? '');
 $purchasePrice = (float) ($input['purchase_price'] ?? 0);
 $salePrice     = (float) ($input['sale_price'] ?? 0);
 $quantity      = (int) ($input['quantity'] ?? 0);
+$lowStockAlert = isset($input['low_stock_alert']) && $input['low_stock_alert'] !== '' ? (int) $input['low_stock_alert'] : null;
 $supplierId    = isset($input['supplier_id']) && $input['supplier_id'] !== '' ? (int) $input['supplier_id'] : null;
 
 $allowedCategories = ['mobile', 'accessory', 'part'];
@@ -19,6 +20,7 @@ if (!in_array($category, $allowedCategories, true)) { echo json_encode(["status"
 if ($quantity <= 0) { echo json_encode(["status" => "error", "message" => "Quantity must be greater than 0"]); exit; }
 if ($purchasePrice <= 0) { echo json_encode(["status" => "error", "message" => "Purchase Price must be greater than 0"]); exit; }
 if ($salePrice <= 0) { echo json_encode(["status" => "error", "message" => "Sale Price must be greater than 0"]); exit; }
+if ($lowStockAlert !== null && $lowStockAlert < 1) { echo json_encode(["status" => "error", "message" => "Low Stock Alert must be greater than 0 (or leave it empty for no alert)"]); exit; }
 
 try {
     $pdo->beginTransaction();
@@ -58,8 +60,8 @@ try {
     }
     $newStock = $stockAfterReverse + $quantity;
 
-    $pdo->prepare("UPDATE products SET stock = ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, supplier_id = ? WHERE id = ?")
-        ->execute([$newStock, $description, $category, $purchasePrice, $salePrice, $supplierId, $product['id']]);
+    $pdo->prepare("UPDATE products SET stock = ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
+        ->execute([$newStock, $description, $category, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $product['id']]);
 
     $newTotal = $purchasePrice * $quantity;
     $paidAmount = (float) $purchase['paid_amount'];

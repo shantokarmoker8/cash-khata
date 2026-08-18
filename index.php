@@ -38,12 +38,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-    /* ============ FIX: overflow-x:hidden পুরো <body>-কে একটা লুকানো
-       Scroll Container বানিয়ে ফেলে, যার কারণে position:sticky দুইটা
-       আলাদা Scroll Context-এর মধ্যে হিসাব গণ্ডগোল করে নড়াচড়া করত।
-       overflow-x:clip একইভাবে Horizontal Overflow আটকায় কিন্তু কোনো
-       নতুন Scroll Container তৈরি করে না — তাই Sticky Header এখন
-       সরাসরি Window-এর সাপেক্ষে হিসাব হয়ে সম্পূর্ণ স্থির থাকে। ============ */
     body { background: var(--body-bg); color: var(--text-dark); overflow-x: clip; }
 
     a { text-decoration: none; }
@@ -74,6 +68,39 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .cash-balance-box i { color: var(--primary-blue); font-size: 14px; }
     .cash-balance-box .cb-label { font-size: 11px; color: var(--text-muted); display: block; line-height: 1; margin-bottom: 3px; }
     .cash-balance-box .cb-value { font-size: 14px; font-weight: 600; color: var(--primary-blue); line-height: 1; }
+
+    /* ============ LOW STOCK ALERT BELL ============ */
+    .low-stock-bell {
+        position: relative; width: 40px; height: 40px; border-radius: 10px; background: #fff7ed;
+        border: 1px solid #fed7aa; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; color: #d97706; font-size: 15px; transition: all 0.2s ease; flex-shrink: 0;
+    }
+    .low-stock-bell:hover { background: #ffedd5; }
+    .low-stock-bell .lsb-badge {
+        position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff;
+        font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid #fff;
+    }
+    .low-stock-row {
+        display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+        border-bottom: 1px solid var(--border-color); font-size: 13px;
+    }
+    .low-stock-row:last-child { border-bottom: none; }
+
+    /* মোবাইল/ট্যাবলেট ভিউতে Topbar Bell লুকিয়ে Profile Dropdown-এর
+       ভেতরে একটা মেনু আইটেম হিসেবে দেখানো হয় (জায়গা বাঁচাতে) */
+    .low-stock-menu-item { display: none; align-items: center; gap: 10px; }
+    @media (min-width: 992px) {
+        .low-stock-menu-item { display: none !important; }
+    }
+    @media (max-width: 991px) {
+        .low-stock-bell { display: none !important; }
+    }
+    .lsm-badge {
+        margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700;
+        min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center;
+        justify-content: center; padding: 0 5px;
+    }
 
     .profile-menu { position: relative; }
     .profile-btn {
@@ -291,6 +318,7 @@ $currentLang = $_SESSION['language'] ?? 'en';
         <div class="nav-item" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span><?php echo lang('dashboard'); ?></span></div>
         <div class="nav-item" data-page="purchase"><i class="fa-solid fa-cart-shopping"></i><span><?php echo lang('purchase'); ?></span></div>
         <div class="nav-item" data-page="sales"><i class="fa-solid fa-tags"></i><span><?php echo lang('sales'); ?></span></div>
+        <div class="nav-item" data-page="service"><i class="fa-solid fa-screwdriver-wrench"></i><span>Mobile Servicing</span></div>
         <div class="nav-item" data-page="expenses"><i class="fa-solid fa-receipt"></i><span><?php echo lang('expenses'); ?></span></div>
         <div class="nav-item" data-page="settings"><i class="fa-solid fa-gear"></i><span><?php echo lang('settings'); ?></span></div>
     </nav>
@@ -303,6 +331,10 @@ $currentLang = $_SESSION['language'] ?? 'en';
     </div>
 
     <div class="topbar-right">
+        <div class="low-stock-bell" id="lowStockBell" title="Low Stock Alert" style="display:none;">
+            <i class="fa-solid fa-bell"></i>
+            <span class="lsb-badge" id="lowStockBadge">0</span>
+        </div>
         <div class="cash-balance-box">
             <i class="fa-solid fa-sack-dollar"></i>
             <div>
@@ -318,6 +350,9 @@ $currentLang = $_SESSION['language'] ?? 'en';
                 <i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
             </button>
             <div class="profile-dropdown" id="profileDropdown">
+                <a class="low-stock-menu-item" id="lowStockMenuItem">
+                    <i class="fa-solid fa-bell" style="color:#d97706;"></i> Low Stock Alert <span class="lsm-badge" id="lowStockMenuBadge">0</span>
+                </a>
                 <a data-page="settings"><i class="fa-solid fa-gear"></i> <?php echo lang('settings'); ?></a>
                 <a class="logout-link" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <?php echo lang('logout'); ?></a>
             </div>
@@ -337,8 +372,20 @@ $currentLang = $_SESSION['language'] ?? 'en';
     <div class="bn-item" data-page="dashboard"><i class="fa-solid fa-gauge-high"></i><span><?php echo lang('dashboard'); ?></span></div>
     <div class="bn-item" data-page="purchase"><i class="fa-solid fa-cart-shopping"></i><span><?php echo lang('purchase'); ?></span></div>
     <div class="bn-item" data-page="sales"><i class="fa-solid fa-tags"></i><span><?php echo lang('sales'); ?></span></div>
+    <div class="bn-item" data-page="service"><i class="fa-solid fa-screwdriver-wrench"></i><span>Service</span></div>
     <div class="bn-item" data-page="expenses"><i class="fa-solid fa-receipt"></i><span><?php echo lang('expenses'); ?></span></div>
 </nav>
+
+<!-- ============ MODAL: LOW STOCK ALERT ============ -->
+<div class="ck-modal-overlay" id="lowStockOverlay" style="display:none;">
+    <div class="ck-modal-box" style="max-width:420px;">
+        <div class="ck-modal-header">
+            <h5><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Low Stock Alert</h5>
+            <i class="fa-solid fa-xmark ck-modal-close" data-close="lowStockOverlay"></i>
+        </div>
+        <div id="lowStockListBody"></div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -428,6 +475,59 @@ function ckConfirm(text) {
     });
 }
 
+/* ============ LOW STOCK ALERT (Global — সব Page-এ Topbar-এ থাকবে) ============ */
+const categoryLabelMap = { mobile: 'Mobile', accessory: 'Accessory', part: 'Part' };
+
+async function loadLowStockAlert() {
+    try {
+        const res = await fetch('api/dashboard/low_stock.php');
+        const result = await res.json();
+        if (result.status !== 'success') return;
+
+        const bell = document.getElementById('lowStockBell');
+        const badge = document.getElementById('lowStockBadge');
+        const menuItem = document.getElementById('lowStockMenuItem');
+        const menuBadge = document.getElementById('lowStockMenuBadge');
+
+        if (result.count > 0) {
+            badge.textContent = result.count > 99 ? '99+' : result.count;
+            bell.style.display = 'flex';
+            menuBadge.textContent = result.count > 99 ? '99+' : result.count;
+            menuItem.style.display = 'flex';
+        } else {
+            bell.style.display = 'none';
+            menuItem.style.display = 'none';
+        }
+
+        const listBody = document.getElementById('lowStockListBody');
+        if (result.data.length === 0) {
+            listBody.innerHTML = `<p class="text-muted text-center py-3" style="font-size:13px;">No low stock items 🎉</p>`;
+        } else {
+            listBody.innerHTML = result.data.map(p => `
+                <div class="low-stock-row">
+                    <div>
+                        <div style="font-weight:500;">${p.name}</div>
+                        <div style="font-size:11px;color:var(--text-muted);">${categoryLabelMap[p.category] || 'Not Set'} • Alert at ${p.low_stock_alert}</div>
+                    </div>
+                    <span class="badge-due" style="font-size:11px;">${p.stock} left</span>
+                </div>
+            `).join('');
+        }
+    } catch (err) { /* silent */ }
+}
+
+document.getElementById('lowStockBell').addEventListener('click', () => {
+    document.getElementById('lowStockOverlay').style.display = 'flex';
+});
+document.getElementById('lowStockMenuItem').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('profileDropdown').classList.remove('show');
+    document.getElementById('lowStockOverlay').style.display = 'flex';
+});
+document.querySelectorAll('[data-close="lowStockOverlay"]').forEach(el => {
+    el.addEventListener('click', () => { document.getElementById('lowStockOverlay').style.display = 'none'; });
+});
+
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', () => loadPage(el.dataset.page)));
 
 const profileBtn = document.getElementById('profileBtn');
@@ -456,6 +556,7 @@ window.addEventListener('DOMContentLoaded', () => {
     gsap.from('.topbar', { y: -16, opacity: 0, duration: 0.5, ease: "power2.out" });
     const initialPage = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
     loadPage(initialPage, false);
+    loadLowStockAlert();
 });
 </script>
 

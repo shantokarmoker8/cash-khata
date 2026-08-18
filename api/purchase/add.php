@@ -11,7 +11,7 @@ $description    = trim($input['description'] ?? '');
 $purchasePrice  = (float) ($input['purchase_price'] ?? 0);
 $salePrice      = (float) ($input['sale_price'] ?? 0);
 $quantity       = (int) ($input['quantity'] ?? 0);
-$lowStockAlert  = 5;
+$lowStockAlert  = isset($input['low_stock_alert']) && $input['low_stock_alert'] !== '' ? (int) $input['low_stock_alert'] : null;
 $supplierId     = isset($input['supplier_id']) && $input['supplier_id'] !== '' ? (int) $input['supplier_id'] : null;
 $paidAmount     = (float) ($input['paid_amount'] ?? 0);
 
@@ -35,6 +35,10 @@ if ($purchasePrice <= 0) {
 }
 if ($salePrice <= 0) {
     echo json_encode(["status" => "error", "message" => "Sale Price must be greater than 0"]);
+    exit;
+}
+if ($lowStockAlert !== null && $lowStockAlert < 1) {
+    echo json_encode(["status" => "error", "message" => "Low Stock Alert must be greater than 0 (or leave it empty for no alert)"]);
     exit;
 }
 if ($paidAmount < 0) {
