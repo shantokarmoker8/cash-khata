@@ -84,11 +84,16 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 </div>
             </div>
 
-            <label class="ck-label mt-2"><?php echo lang('quantity'); ?></label>
-            <input type="number" min="1" class="ck-input" id="pQuantity" required>
-
-            <label class="ck-label mt-2">Low Stock Alert <span class="text-muted">(optional — leave empty for no alert)</span></label>
-            <input type="number" min="1" class="ck-input" id="pLowStockAlert" placeholder="e.g. 5">
+            <div class="row g-2 mt-1">
+                <div class="col-6">
+                    <label class="ck-label"><?php echo lang('quantity'); ?></label>
+                    <input type="number" min="1" class="ck-input" id="pQuantity" required>
+                </div>
+                <div class="col-6">
+                    <label class="ck-label">Low Stock Alert</label>
+                    <input type="number" min="1" class="ck-input" id="pLowStockAlert" placeholder="e.g. 5">
+                </div>
+            </div>
 
             <label class="ck-label mt-2"><?php echo lang('supplier'); ?></label>
             <div class="d-flex gap-2">
