@@ -6,22 +6,32 @@ header('Content-Type: application/json');
 $input = json_decode(file_get_contents('php://input'), true);
 
 $customerId         = isset($input['customer_id']) && $input['customer_id'] !== '' ? (int) $input['customer_id'] : null;
-$customerName       = trim($input['customer_name'] ?? '');
-$customerMobile     = trim($input['customer_mobile'] ?? '');
 $mobileBrand        = trim($input['mobile_brand'] ?? '');
-$mobileModel        = trim($input['mobile_model'] ?? '');
+$mobileModel        = '';
 $problemDescription = trim($input['problem_description'] ?? '');
 $serviceCharge      = (float) ($input['service_charge'] ?? 0);
 $discountAmount     = (float) ($input['discount_amount'] ?? 0);
 $paidAmount         = (float) ($input['paid_amount'] ?? 0);
 $parts              = is_array($input['parts'] ?? null) ? $input['parts'] : [];
 
-if ($customerName === '' || $customerMobile === '') {
-    echo json_encode(["status" => "error", "message" => "Customer Name and Mobile Number are required"]);
-    exit;
+// ============ Customer Name/Mobile সবসময় Server-side থেকে বের করা হচ্ছে (Client কে বিশ্বাস করা হচ্ছে না) ============
+if ($customerId) {
+    $custStmt = $pdo->prepare("SELECT name, mobile FROM customers WHERE id = ?");
+    $custStmt->execute([$customerId]);
+    $custRow = $custStmt->fetch();
+    if (!$custRow) {
+        echo json_encode(["status" => "error", "message" => "Selected customer was not found"]);
+        exit;
+    }
+    $customerName = $custRow['name'];
+    $customerMobile = $custRow['mobile'];
+} else {
+    $customerName = 'Walk-in Customer';
+    $customerMobile = '-';
 }
-if ($mobileBrand === '' || $mobileModel === '') {
-    echo json_encode(["status" => "error", "message" => "Mobile Brand and Model are required"]);
+
+if ($mobileBrand === '') {
+    echo json_encode(["status" => "error", "message" => "Mobile Name is required"]);
     exit;
 }
 if ($problemDescription === '') {

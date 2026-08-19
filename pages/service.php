@@ -65,32 +65,18 @@ require_once __DIR__ . '/../includes/auth_check.php';
         </div>
 
         <form id="serviceForm">
-            <label class="ck-label">Existing Customer <span class="text-muted">(optional — needed only for Due)</span></label>
-            <select class="ck-select" id="sCustomerSelect">
-                <option value="">-- Walk-in / New Customer --</option>
-            </select>
-
-            <div class="row g-2 mt-1">
-                <div class="col-6">
-                    <label class="ck-label">Customer Name</label>
-                    <input type="text" class="ck-input" id="sCustomerName" required>
-                </div>
-                <div class="col-6">
-                    <label class="ck-label">Customer Mobile</label>
-                    <input type="text" class="ck-input" id="sCustomerMobile" required>
-                </div>
+            <label class="ck-label">Customer</label>
+            <div class="d-flex gap-2">
+                <select class="ck-select" id="sCustomerSelect">
+                    <option value="">-- Walk-in Customer --</option>
+                </select>
+                <button type="button" class="ck-btn ck-btn-outline" id="btnQuickAddServiceCustomer" style="padding:10px 14px;" title="Add New Customer">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
 
-            <div class="row g-2 mt-1">
-                <div class="col-6">
-                    <label class="ck-label">Mobile Brand</label>
-                    <input type="text" class="ck-input" id="sMobileBrand" placeholder="e.g. Vivo" required>
-                </div>
-                <div class="col-6">
-                    <label class="ck-label">Mobile Model</label>
-                    <input type="text" class="ck-input" id="sMobileModel" placeholder="e.g. Y20" required>
-                </div>
-            </div>
+            <label class="ck-label mt-2">Mobile Name / Brand</label>
+            <input type="text" class="ck-input" id="sMobileBrand" placeholder="e.g. Vivo Y20" required>
 
             <label class="ck-label mt-2">Problem Description</label>
             <textarea class="ck-input" id="sProblem" rows="2" placeholder="e.g. Display broken, not charging..." required></textarea>
@@ -150,6 +136,31 @@ require_once __DIR__ . '/../includes/auth_check.php';
             <div class="d-flex gap-2 mt-3">
                 <button type="button" class="ck-btn ck-btn-outline flex-fill justify-content-center" data-close="serviceFormOverlay"><?php echo lang('cancel'); ?></button>
                 <button type="submit" class="ck-btn ck-btn-primary flex-fill justify-content-center" id="serviceSaveBtn"><?php echo lang('save'); ?></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============ MODAL: QUICK ADD CUSTOMER (Service Page) ============ -->
+<div class="ck-modal-overlay" id="serviceQuickCustomerOverlay" style="display:none;">
+    <div class="ck-modal-box" style="max-width:380px;">
+        <div class="ck-modal-header">
+            <h5><?php echo lang('add_customer'); ?></h5>
+            <i class="fa-solid fa-xmark ck-modal-close" data-close="serviceQuickCustomerOverlay"></i>
+        </div>
+        <form id="serviceQuickCustomerForm">
+            <label class="ck-label"><?php echo lang('name'); ?></label>
+            <input type="text" class="ck-input" id="sqcName" required>
+
+            <label class="ck-label mt-2"><?php echo lang('mobile'); ?></label>
+            <input type="text" class="ck-input" id="sqcMobile" required>
+
+            <label class="ck-label mt-2"><?php echo lang('address'); ?> <span class="text-muted">(optional)</span></label>
+            <input type="text" class="ck-input" id="sqcAddress">
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="ck-btn ck-btn-outline flex-fill justify-content-center" data-close="serviceQuickCustomerOverlay"><?php echo lang('cancel'); ?></button>
+                <button type="submit" class="ck-btn ck-btn-primary flex-fill justify-content-center"><?php echo lang('save'); ?></button>
             </div>
         </form>
     </div>
@@ -326,7 +337,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 return `
                 <tr>
                     <td data-label="Customer" style="font-weight:500;">${s.customer_name}<div style="font-size:10px;color:var(--text-muted);">${s.customer_mobile}</div></td>
-                    <td data-label="Mobile">${s.mobile_brand} ${s.mobile_model}</td>
+                    <td data-label="Mobile">${s.mobile_brand}${s.mobile_model ? ' ' + s.mobile_model : ''}</td>
                     <td data-label="Problem" title="${s.problem_description.replace(/"/g, '&quot;')}">${problemShort}</td>
                     <td data-label="Service Charge">${money(s.service_charge)}</td>
                     <td data-label="Parts Total">
@@ -443,18 +454,44 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     partsCache.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock}) - ${money(p.sale_price)}</option>`).join('');
 
                 const custSelect = document.getElementById('sCustomerSelect');
-                custSelect.innerHTML = '<option value="">-- Walk-in / New Customer --</option>' +
+                custSelect.innerHTML = '<option value="">-- Walk-in Customer --</option>' +
                     customersCache.map(c => `<option value="${c.id}">${c.name} - ${c.mobile}</option>`).join('');
             }
         } catch (err) { /* silent */ }
     }
 
-    /* ============ AUTOFILL CUSTOMER ON SELECT ============ */
-    document.getElementById('sCustomerSelect').addEventListener('change', function () {
-        const cust = customersCache.find(c => c.id == this.value);
-        if (cust) {
-            document.getElementById('sCustomerName').value = cust.name;
-            document.getElementById('sCustomerMobile').value = cust.mobile;
+    /* ============ QUICK ADD CUSTOMER (Service Page) ============ */
+    document.getElementById('btnQuickAddServiceCustomer').addEventListener('click', () => {
+        document.getElementById('serviceQuickCustomerForm').reset();
+        document.getElementById('serviceQuickCustomerOverlay').style.display = 'flex';
+    });
+
+    document.querySelectorAll('#serviceQuickCustomerOverlay [data-close], #serviceQuickCustomerOverlay .ck-modal-close').forEach(el => {
+        el.addEventListener('click', () => document.getElementById('serviceQuickCustomerOverlay').style.display = 'none');
+    });
+
+    document.getElementById('serviceQuickCustomerForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const payload = {
+            name: document.getElementById('sqcName').value.trim(),
+            mobile: document.getElementById('sqcMobile').value.trim(),
+            address: document.getElementById('sqcAddress').value.trim()
+        };
+        try {
+            const res = await fetch('api/customer/add.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+                ckToast('success', result.message);
+                document.getElementById('serviceQuickCustomerOverlay').style.display = 'none';
+                await loadFormData();
+                document.getElementById('sCustomerSelect').value = result.data.id;
+            } else {
+                ckToast('error', result.message);
+            }
+        } catch (err) {
+            ckToast('error', 'Failed to add customer');
         }
     });
 
@@ -570,10 +607,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
         const payload = {
             customer_id: document.getElementById('sCustomerSelect').value,
-            customer_name: document.getElementById('sCustomerName').value.trim(),
-            customer_mobile: document.getElementById('sCustomerMobile').value.trim(),
             mobile_brand: document.getElementById('sMobileBrand').value.trim(),
-            mobile_model: document.getElementById('sMobileModel').value.trim(),
             problem_description: document.getElementById('sProblem').value.trim(),
             service_charge: document.getElementById('sServiceCharge').value || 0,
             discount_amount: document.getElementById('sDiscount').value || 0,

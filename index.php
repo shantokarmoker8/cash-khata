@@ -228,7 +228,11 @@ $currentLang = $_SESSION['language'] ?? 'en';
         position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 2000;
         display: flex; align-items: center; justify-content: center; padding: 16px;
     }
-    .ck-modal-box { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+    .ck-modal-box {
+    background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+}
+.ck-modal-box::-webkit-scrollbar { display: none; width: 0; height: 0; }
     .ck-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
     .ck-modal-header h5 { font-weight: 600; margin: 0; }
     .ck-modal-close { cursor: pointer; color: var(--text-muted); font-size: 16px; transition: color 0.2s ease; }
