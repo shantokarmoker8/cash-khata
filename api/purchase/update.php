@@ -5,6 +5,7 @@ header('Content-Type: application/json');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $id            = (int) ($input['id'] ?? 0);
+$productName   = trim($input['product_name'] ?? '');
 $category      = trim($input['category'] ?? '');
 $description   = trim($input['description'] ?? '');
 $purchasePrice = (float) ($input['purchase_price'] ?? 0);
@@ -16,6 +17,7 @@ $supplierId    = isset($input['supplier_id']) && $input['supplier_id'] !== '' ? 
 $allowedCategories = ['mobile', 'accessory', 'part'];
 
 if ($id <= 0) { echo json_encode(["status" => "error", "message" => "Invalid Purchase ID"]); exit; }
+if ($productName === '') { echo json_encode(["status" => "error", "message" => "Product Name is required"]); exit; }
 if (!in_array($category, $allowedCategories, true)) { echo json_encode(["status" => "error", "message" => "Please select a valid Category (Mobiles / Accessories / Parts)"]); exit; }
 if ($quantity <= 0) { echo json_encode(["status" => "error", "message" => "Quantity must be greater than 0"]); exit; }
 if ($purchasePrice <= 0) { echo json_encode(["status" => "error", "message" => "Purchase Price must be greater than 0"]); exit; }
@@ -59,8 +61,8 @@ try {
         exit;
     }
 
-    $pdo->prepare("UPDATE products SET stock = ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
-        ->execute([$newStock, $description, $category, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $product['id']]);
+    $pdo->prepare("UPDATE products SET name = ?, stock = ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
+        ->execute([$productName, $newStock, $description, $category, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $product['id']]);
 
     $newTotal = $purchasePrice * $quantity;
     $paidAmount = (float) $purchase['paid_amount'];

@@ -492,6 +492,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
             if (editId) {
                 const payload = {
                     id: editId,
+                    product_name: document.getElementById('pProductName').value.trim(),
                     category: document.getElementById('pCategorySelect').value,
                     description: document.getElementById('pDescription').value.trim(),
                     purchase_price: document.getElementById('pPurchasePrice').value,
