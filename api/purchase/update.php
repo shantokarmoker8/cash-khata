@@ -51,14 +51,13 @@ try {
         exit;
     }
 
-    // পুরনো Quantity বাদ দিয়ে নতুন Quantity বসানো
-    $stockAfterReverse = $product['stock'] - $purchase['quantity'];
-    if ($stockAfterReverse < 0) {
+    $qtyDelta = $quantity - (int) $purchase['quantity'];
+    $newStock = (int) $product['stock'] + $qtyDelta;
+    if ($newStock < 0) {
         $pdo->rollBack();
-        echo json_encode(["status" => "error", "message" => "Cannot edit: some of this stock has already been sold"]);
+        echo json_encode(["status" => "error", "message" => "Cannot reduce quantity this much: some of this stock has already been sold"]);
         exit;
     }
-    $newStock = $stockAfterReverse + $quantity;
 
     $pdo->prepare("UPDATE products SET stock = ?, description = ?, category = ?, purchase_price = ?, sale_price = ?, low_stock_alert = ?, supplier_id = ? WHERE id = ?")
         ->execute([$newStock, $description, $category, $purchasePrice, $salePrice, $lowStockAlert, $supplierId, $product['id']]);
@@ -72,8 +71,7 @@ try {
         exit;
     }
     $newDue = $newTotal - $paidAmount;
-
-    // Supplier Due Reverse করে নতুন করে বসানো
+    $newPaymentType = ($newDue <= 0) ? 'cash' : 'due';
     if ($purchase['due_amount'] > 0 && $purchase['supplier_id']) {
         $pdo->prepare("UPDATE suppliers SET due = GREATEST(due - ?, 0) WHERE id = ?")->execute([$purchase['due_amount'], $purchase['supplier_id']]);
     }
@@ -81,8 +79,8 @@ try {
         $pdo->prepare("UPDATE suppliers SET due = due + ? WHERE id = ?")->execute([$newDue, $supplierId]);
     }
 
-    $pdo->prepare("UPDATE purchases SET supplier_id = ?, quantity = ?, purchase_price = ?, total_amount = ?, due_amount = ? WHERE id = ?")
-        ->execute([$supplierId, $quantity, $purchasePrice, $newTotal, $newDue, $id]);
+    $pdo->prepare("UPDATE purchases SET supplier_id = ?, quantity = ?, purchase_price = ?, total_amount = ?, due_amount = ?, payment_type = ? WHERE id = ?")
+        ->execute([$supplierId, $quantity, $purchasePrice, $newTotal, $newDue, $newPaymentType, $id]);
 
     $pdo->commit();
 

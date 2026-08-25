@@ -230,6 +230,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
     let suppliersCache = [];
     let availableCash = 0;
     let editMode = false;
+    let purchaseDataCache = {}; // id => purchase row (apostrophe/quote-safe lookup)
 
     function money(v) {
         return '৳' + parseFloat(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -267,6 +268,9 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 return;
             }
 
+            purchaseDataCache = {};
+            result.data.forEach(p => { purchaseDataCache[p.id] = p; });
+
             tbody.innerHTML = result.data.map(p => {
                 let statusHtml;
                 if (p.due_amount > 0 && p.paid_amount > 0) {
@@ -289,8 +293,8 @@ require_once __DIR__ . '/../includes/auth_check.php';
                     <td data-label="<?php echo lang('date'); ?>">${formatDate(p.created_at)}</td>
                     <td data-label="<?php echo lang('action'); ?>">
                         <div class="d-flex gap-2 justify-content-end">
-                            ${p.due_amount > 0 ? `<button class="ck-btn ck-btn-success-soft" style="padding:6px 10px;font-size:11px;" onclick='openPayDue(${JSON.stringify(p)})'><i class="fa-solid fa-hand-holding-dollar"></i> Pay</button>` : ''}
-                            <button class="icon-btn ck-btn-outline" onclick='openEditPurchase(${JSON.stringify(p)})'><i class="fa-solid fa-pen"></i></button>
+                            ${p.due_amount > 0 ? `<button class="ck-btn ck-btn-success-soft" style="padding:6px 10px;font-size:11px;" onclick="openPayDue(${p.id})"><i class="fa-solid fa-hand-holding-dollar"></i> Pay</button>` : ''}
+                            <button class="icon-btn ck-btn-outline" onclick="openEditPurchase(${p.id})"><i class="fa-solid fa-pen"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -378,7 +382,9 @@ require_once __DIR__ . '/../includes/auth_check.php';
     });
 
     /* ============ OPEN EDIT PURCHASE ============ */
-    window.openEditPurchase = async function (p) {
+    window.openEditPurchase = async function (id) {
+        const p = purchaseDataCache[id];
+        if (!p) { ckToast('error', 'Purchase data not found, please reload'); return; }
         editMode = true;
         document.getElementById('purchaseModalTitle').textContent = '<?php echo lang('edit'); ?> Purchase';
         document.getElementById('purchaseEditId').value = p.id;
@@ -430,7 +436,9 @@ require_once __DIR__ . '/../includes/auth_check.php';
     });
 
     /* ============ PAY DUE ============ */
-    window.openPayDue = function (p) {
+    window.openPayDue = function (id) {
+        const p = purchaseDataCache[id];
+        if (!p) { ckToast('error', 'Purchase data not found, please reload'); return; }
         document.getElementById('payDuePurchaseId').value = p.id;
         document.getElementById('payDueProductName').textContent = p.product_name;
         document.getElementById('payDueAmountText').textContent = money(p.due_amount);
