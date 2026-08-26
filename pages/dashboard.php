@@ -21,16 +21,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
         <div class="row g-2 mb-3" id="summaryCardsRow"></div>
 
-        <div class="ck-card stock-value-card" id="stockValueCard">
-            <div class="svc-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <div class="svc-content">
-                <div class="svc-label"><?php echo lang('total_stock_value'); ?></div>
-                <div class="svc-value" id="stockValueAmount">৳0.00</div>
-            </div>
-            <div class="svc-badge" id="stockLowBadge" style="display:none;"></div>
-            <i class="fa-solid fa-chevron-right svc-arrow"></i>
-        </div>
-
         <div class="d-flex justify-content-center gap-3 mb-1 flex-wrap">
             <button class="ck-btn ck-btn-primary" id="btnAddCustomer">
                 <i class="fa-solid fa-user-plus"></i> <?php echo lang('add_customer'); ?>
@@ -254,11 +244,11 @@ require_once __DIR__ . '/../includes/auth_check.php';
     </div>
 </div>
 
-<!-- ============ MODAL: STOCK LIST ============ -->
+<!-- ============ MODAL: TOTAL STOCK VALUE (ALL PRODUCTS) ============ -->
 <div class="ck-modal-overlay" id="stockListOverlay" style="display:none;">
     <div class="ck-modal-box" style="max-width:680px;">
         <div class="ck-modal-header">
-            <h5><?php echo lang('stock_list'); ?></h5>
+            <h5><?php echo lang('total_stock_value'); ?></h5>
             <i class="fa-solid fa-xmark ck-modal-close" data-close="stockListOverlay"></i>
         </div>
         <div class="ck-card mb-3">
@@ -266,10 +256,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="stlSearchInput" placeholder="<?php echo lang('search'); ?> products...">
             </div>
-        </div>
-        <div class="d-flex gap-2 mb-3">
-            <button class="stl-filter-btn active" data-filter="all"><?php echo lang('all_products'); ?></button>
-            <button class="stl-filter-btn" data-filter="low"><?php echo lang('low_stock'); ?></button>
         </div>
         <div class="ck-card p-0">
             <div class="fixed-scroll-area-cl">
@@ -296,9 +282,46 @@ require_once __DIR__ . '/../includes/auth_check.php';
     </div>
 </div>
 
+<!-- ============ MODAL: LOW STOCK ALERT (LOW STOCK PRODUCTS ONLY) ============ -->
+<div class="ck-modal-overlay" id="lowStockOverlay" style="display:none;">
+    <div class="ck-modal-box" style="max-width:680px;">
+        <div class="ck-modal-header">
+            <h5><?php echo lang('low_stock_alert'); ?></h5>
+            <i class="fa-solid fa-xmark ck-modal-close" data-close="lowStockOverlay"></i>
+        </div>
+        <div class="ck-card mb-3">
+            <div class="input-group-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="lsSearchInput" placeholder="<?php echo lang('search'); ?> products...">
+            </div>
+        </div>
+        <div class="ck-card p-0">
+            <div class="fixed-scroll-area-cl">
+                <table class="ck-table">
+                    <thead>
+                        <tr>
+                            <th><?php echo lang('product_name'); ?></th>
+                            <th><?php echo lang('category'); ?></th>
+                            <th><?php echo lang('stock'); ?></th>
+                            <th><?php echo lang('purchase_price'); ?></th>
+                            <th><?php echo lang('stock_value'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="lsTableBody">
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3" style="font-size:13px;">
+            <span class="text-muted"><?php echo lang('total_stock_value'); ?></span>
+            <strong id="lsTotalValue">৳0.00</strong>
+        </div>
+    </div>
+</div>
+
 <!-- ============ PAGE-SPECIFIC STYLES ============ -->
 <style>
-    /* ============ পুরো Page Exactly Display-এর সমান Height-এ Fix ============ */
     #dashboardPage {
         display: flex;
         flex-direction: column;
@@ -350,31 +373,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
     .summary-card .sc-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .summary-card .sc-value { font-size: 16px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ============ Stock Value Card ============ */
-    .stock-value-card {
-        display: flex; align-items: center; gap: 14px; cursor: pointer;
-        padding: 16px 18px; margin-bottom: 16px; transition: all 0.2s ease; flex-shrink: 0;
-    }
-    .stock-value-card:hover { border-color: var(--primary-blue); box-shadow: 0 6px 18px rgba(37,99,235,0.1); transform: translateY(-2px); }
-    .svc-icon {
-        width: 46px; height: 46px; border-radius: 12px; background: #f5f3ff; color: #7c3aed;
-        display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
-    }
-    .svc-content { flex: 1; min-width: 0; }
-    .svc-label { font-size: 12px; color: var(--text-muted); }
-    .svc-value { font-size: 20px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .svc-badge {
-        background: var(--danger); color: #fff; font-size: 11px; font-weight: 700;
-        padding: 4px 10px; border-radius: 20px; flex-shrink: 0; white-space: nowrap;
-    }
-    .svc-arrow { color: var(--text-muted); font-size: 13px; flex-shrink: 0; }
-
-    .stl-filter-btn {
-        border: 1.5px solid var(--border-color); background: #fff; color: var(--text-dark);
-        padding: 7px 14px; border-radius: 10px; font-size: 12px; font-weight: 500; cursor: pointer;
-    }
-    .stl-filter-btn.active { background: var(--primary-blue); border-color: var(--primary-blue); color: #fff; }
-
     .low-stock-tag {
         background: #fff7ed; color: #d97706; font-size: 10px; font-weight: 600;
         padding: 2px 8px; border-radius: 20px; margin-left: 6px; white-space: nowrap;
@@ -419,10 +417,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         .summary-card .sc-label { font-size: 8.5px; white-space: normal; }
         .summary-card .sc-value { font-size: 11px; }
 
-        .stock-value-card { padding: 10px 12px; }
-        .svc-value { font-size: 15px; }
-        .svc-label { font-size: 10.5px; }
-
         .recent-grid {
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
             gap: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch;
@@ -446,12 +440,14 @@ require_once __DIR__ . '/../includes/auth_check.php';
 <script>
 (function () {
     const cardMeta = [
-        { key: 'total_purchase', label: '<?php echo lang('total_purchase'); ?>', icon: 'fa-cart-shopping', color: '#2563eb', bg: '#eff6ff', type: 'purchase' },
-        { key: 'total_sales',    label: '<?php echo lang('total_sales'); ?>',    icon: 'fa-tags',          color: '#16a34a', bg: '#f0fdf4', type: 'sales' },
-        { key: 'total_profit',   label: '<?php echo lang('total_profit'); ?>',   icon: 'fa-chart-line',    color: '#7c3aed', bg: '#f5f3ff', type: 'profit' },
-        { key: 'customer_due',   label: '<?php echo lang('customer_due'); ?>',   icon: 'fa-user-clock',    color: '#d97706', bg: '#fff7ed', type: 'customer_due' },
-        { key: 'supplier_due',   label: '<?php echo lang('supplier_due'); ?>',   icon: 'fa-truck-fast',    color: '#dc2626', bg: '#fef2f2', type: 'supplier_due' },
-        { key: 'total_expenses', label: '<?php echo lang('total_expenses'); ?>', icon: 'fa-receipt',       color: '#0891b2', bg: '#ecfeff', type: 'expenses' }
+        { key: 'total_purchase',    label: '<?php echo lang('total_purchase'); ?>',    icon: 'fa-cart-shopping',   color: '#2563eb', bg: '#eff6ff', type: 'purchase',     format: 'currency' },
+        { key: 'total_sales',       label: '<?php echo lang('total_sales'); ?>',       icon: 'fa-tags',            color: '#16a34a', bg: '#f0fdf4', type: 'sales',        format: 'currency' },
+        { key: 'total_profit',      label: '<?php echo lang('total_profit'); ?>',      icon: 'fa-chart-line',      color: '#7c3aed', bg: '#f5f3ff', type: 'profit',       format: 'currency' },
+        { key: 'customer_due',      label: '<?php echo lang('customer_due'); ?>',      icon: 'fa-user-clock',      color: '#d97706', bg: '#fff7ed', type: 'customer_due', format: 'currency' },
+        { key: 'supplier_due',      label: '<?php echo lang('supplier_due'); ?>',      icon: 'fa-truck-fast',      color: '#dc2626', bg: '#fef2f2', type: 'supplier_due', format: 'currency' },
+        { key: 'total_expenses',    label: '<?php echo lang('total_expenses'); ?>',    icon: 'fa-receipt',         color: '#0891b2', bg: '#ecfeff', type: 'expenses',     format: 'currency' },
+        { key: 'total_stock_value', label: '<?php echo lang('total_stock_value'); ?>', icon: 'fa-boxes-stacked',   color: '#7c3aed', bg: '#f5f3ff', type: 'stock_value',  format: 'currency' },
+        { key: 'low_stock_count',   label: '<?php echo lang('low_stock_alert'); ?>',   icon: 'fa-triangle-exclamation', color: '#dc2626', bg: '#fef2f2', type: 'low_stock', format: 'count' }
     ];
 
     let dashboardChart = null;
@@ -471,7 +467,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         return Math.floor(diff / 86400) + 'd ago';
     }
 
-    /* ============ Sales Page-এ গিয়ে সরাসরি History View-এ যাওয়া ============ */
     function goToSalesHistory() {
         loadPage('sales').then(() => {
             setTimeout(() => {
@@ -481,7 +476,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         });
     }
 
-    /* ============ DASHBOARD DATA LOAD ============ */
     async function loadDashboard(period) {
         if (period) currentPeriod = period;
 
@@ -498,35 +492,33 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
             const cardsRow = document.getElementById('summaryCardsRow');
             cardsRow.innerHTML = cardMeta.map(m => `
-                <div class="col-4">
+                <div class="col-6 col-md-3">
                     <div class="summary-card" data-type="${m.type}" data-label="${m.label}">
                         <div class="sc-icon" style="background:${m.bg};color:${m.color};">
                             <i class="fa-solid ${m.icon}"></i>
                         </div>
                         <div class="sc-content">
                             <div class="sc-label">${m.label}</div>
-                            <div class="sc-value">${money(data[m.key])}</div>
+                            <div class="sc-value">${m.format === 'count' ? data[m.key] : money(data[m.key])}</div>
                         </div>
                     </div>
                 </div>
             `).join('');
 
             document.querySelectorAll('.summary-card').forEach(card => {
-                card.addEventListener('click', () => openChartModal(card.dataset.type, card.dataset.label));
+                card.addEventListener('click', () => {
+                    if (card.dataset.type === 'stock_value') {
+                        openStockListModal();
+                    } else if (card.dataset.type === 'low_stock') {
+                        openLowStockModal();
+                    } else {
+                        openChartModal(card.dataset.type, card.dataset.label);
+                    }
+                });
             });
 
             updateCashBalance(data.cash_balance);
 
-            document.getElementById('stockValueAmount').textContent = money(data.total_stock_value);
-            const lowBadge = document.getElementById('stockLowBadge');
-            if (data.low_stock_count > 0) {
-                lowBadge.textContent = data.low_stock_count + ' ' + '<?php echo lang('low_stock'); ?>';
-                lowBadge.style.display = 'inline-block';
-            } else {
-                lowBadge.style.display = 'none';
-            }
-
-            /* ============ Recent Purchase: due_amount দিয়ে Badge (payment_type নয়) ============ */
             const purchaseBox = document.getElementById('recentPurchaseList');
             if (data.recent_purchases.length === 0) {
                 purchaseBox.innerHTML = `<p class="text-muted text-center py-4" style="font-size:13px;"><?php echo lang('no_data'); ?></p>`;
@@ -548,7 +540,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 }).join('');
             }
 
-            /* ============ Recent Sales: due_amount দিয়ে Badge (payment_type নয়) ============ */
             const salesBox = document.getElementById('recentSalesList');
             if (data.recent_sales.length === 0) {
                 salesBox.innerHTML = `<p class="text-muted text-center py-4" style="font-size:13px;"><?php echo lang('no_data'); ?></p>`;
@@ -581,7 +572,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
     document.getElementById('goToPurchase').addEventListener('click', () => loadPage('purchase'));
     document.getElementById('goToSales').addEventListener('click', () => goToSalesHistory());
 
-    /* ============ ADD CUSTOMER / SUPPLIER ============ */
     document.getElementById('btnAddCustomer').addEventListener('click', () => {
         document.getElementById('addCustomerOverlay').style.display = 'flex';
     });
@@ -657,7 +647,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         }
     });
 
-    /* ============ CUSTOMER LIST MODAL (Direct Popup) ============ */
     window.openCustomerListModal = function () {
         document.getElementById('customerListOverlay').style.display = 'flex';
         loadCustomerListModal();
@@ -750,7 +739,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         clSearchTimer = setTimeout(() => loadCustomerListModal(val), 350);
     });
 
-    /* ============ SUPPLIER LIST MODAL (Direct Popup) ============ */
     window.openSupplierListModal = function () {
         document.getElementById('supplierListOverlay').style.display = 'flex';
         loadSupplierListModal();
@@ -843,7 +831,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         slSearchTimer = setTimeout(() => loadSupplierListModal(val), 350);
     });
 
-    /* ============ CHART MODAL ============ */
     async function openChartModal(type, label) {
         currentChartType = type;
         document.getElementById('chartModalTitle').textContent = label;
@@ -861,8 +848,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
         };
         document.getElementById('chartViewListText').textContent = listLabels[type] || 'View List';
 
-        /* Modal ঠিকভাবে Visible হওয়ার একটু পরে Chart তৈরি করা হচ্ছে —
-           নাহলে Canvas Hidden অবস্থায় Size ০ পেয়ে ভাঙা Chart দেখাত */
         await new Promise(resolve => setTimeout(resolve, 60));
         await renderChart(type, 7);
     }
@@ -932,7 +917,6 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 }
             });
 
-            /* Resize এর মাধ্যমে নিশ্চিত করা হচ্ছে Chart সঠিক Dimension ব্যবহার করছে */
             requestAnimationFrame(() => { if (dashboardChart) dashboardChart.resize(); });
         } catch (err) {
             ckToast('error', 'Something went wrong while loading chart');
@@ -956,13 +940,11 @@ require_once __DIR__ . '/../includes/auth_check.php';
         return `<span class="badge-cash" style="background:${c.bg};color:${c.color};">${c.label}</span>`;
     }
 
-    let stockFilterMode = 'all';
-
-    async function loadStockListModal(search = '', filter = 'all') {
+    async function loadStockListModal(search = '') {
         const tbody = document.getElementById('stlTableBody');
         tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr>`;
         try {
-            const res = await fetch(`api/dashboard/stock_list.php?search=${encodeURIComponent(search)}&filter=${filter}`);
+            const res = await fetch(`api/dashboard/stock_list.php?search=${encodeURIComponent(search)}&filter=all`);
             const result = await res.json();
             if (result.status !== 'success') {
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error</td></tr>`;
@@ -987,29 +969,59 @@ require_once __DIR__ . '/../includes/auth_check.php';
         }
     }
 
-    document.getElementById('stockValueCard').addEventListener('click', () => {
+    function openStockListModal() {
         document.getElementById('stockListOverlay').style.display = 'flex';
-        document.querySelectorAll('.stl-filter-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.stl-filter-btn[data-filter="all"]').classList.add('active');
         document.getElementById('stlSearchInput').value = '';
-        stockFilterMode = 'all';
-        loadStockListModal('', 'all');
-    });
+        loadStockListModal('');
+    }
 
     let stlSearchTimer;
     document.getElementById('stlSearchInput').addEventListener('input', function () {
         clearTimeout(stlSearchTimer);
         const val = this.value;
-        stlSearchTimer = setTimeout(() => loadStockListModal(val, stockFilterMode), 350);
+        stlSearchTimer = setTimeout(() => loadStockListModal(val), 350);
     });
 
-    document.querySelectorAll('.stl-filter-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.stl-filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            stockFilterMode = this.dataset.filter;
-            loadStockListModal(document.getElementById('stlSearchInput').value, stockFilterMode);
-        });
+    async function loadLowStockModal(search = '') {
+        const tbody = document.getElementById('lsTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">Loading...</td></tr>`;
+        try {
+            const res = await fetch(`api/dashboard/stock_list.php?search=${encodeURIComponent(search)}&filter=low`);
+            const result = await res.json();
+            if (result.status !== 'success') {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error</td></tr>`;
+                return;
+            }
+            document.getElementById('lsTotalValue').textContent = money(result.total_value);
+            if (result.data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted"><?php echo lang('no_data'); ?></td></tr>`;
+                return;
+            }
+            tbody.innerHTML = result.data.map(p => `
+                <tr>
+                    <td data-label="<?php echo lang('product_name'); ?>" style="font-weight:500;">${p.name}${p.is_low_stock ? `<span class="low-stock-tag"><?php echo lang('low_stock'); ?></span>` : ''}</td>
+                    <td data-label="<?php echo lang('category'); ?>">${categoryBadge(p.category)}</td>
+                    <td data-label="<?php echo lang('stock'); ?>">${p.stock}</td>
+                    <td data-label="<?php echo lang('purchase_price'); ?>">${money(p.purchase_price)}</td>
+                    <td data-label="<?php echo lang('stock_value'); ?>" style="font-weight:600;">${money(p.stock_value)}</td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-danger">Error</td></tr>`;
+        }
+    }
+
+    function openLowStockModal() {
+        document.getElementById('lowStockOverlay').style.display = 'flex';
+        document.getElementById('lsSearchInput').value = '';
+        loadLowStockModal('');
+    }
+
+    let lsSearchTimer;
+    document.getElementById('lsSearchInput').addEventListener('input', function () {
+        clearTimeout(lsSearchTimer);
+        const val = this.value;
+        lsSearchTimer = setTimeout(() => loadLowStockModal(val), 350);
     });
 
     loadDashboard('today');
