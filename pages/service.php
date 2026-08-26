@@ -88,9 +88,11 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
             <label class="ck-label">Add Parts Used <span class="text-muted">(only from Parts category stock)</span></label>
             <div class="d-flex gap-2">
-                <select class="ck-select flex-fill" id="sPartSelect">
-                    <option value="">-- Select Part --</option>
-                </select>
+                <div class="ck-search-select flex-fill" id="sPartSearchWrap">
+                    <input type="text" class="ck-input" id="sPartSearchInput" placeholder="Search part by name..." autocomplete="off">
+                    <input type="hidden" id="sPartSelect" value="">
+                    <div class="ck-search-dropdown" id="sPartDropdown" style="display:none;"></div>
+                </div>
                 <input type="number" class="ck-input" id="sPartQty" min="1" value="1" style="max-width:80px;">
                 <button type="button" class="ck-btn ck-btn-outline" id="btnAddPart" style="padding:10px 14px;">
                     <i class="fa-solid fa-plus"></i>
@@ -276,6 +278,48 @@ require_once __DIR__ . '/../includes/auth_check.php';
         background: #fff;
         cursor: pointer;
     }
+
+    .ck-search-select { position: relative; }
+    .ck-search-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        max-height: 240px;
+        overflow-y: auto;
+        z-index: 60;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.14);
+    }
+    .ck-search-item {
+        padding: 9px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--body-bg);
+    }
+    .ck-search-item:last-child { border-bottom: none; }
+    .ck-search-item:hover,
+    .ck-search-item.ck-search-item-active { background: var(--light-blue); }
+    .ck-search-item .csi-name { font-weight: 500; }
+    .ck-search-item .csi-stock {
+        font-size: 11px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .ck-search-item.ck-search-item-disabled { opacity: 0.5; cursor: not-allowed; }
+    .ck-search-empty {
+        padding: 16px 14px;
+        font-size: 12px;
+        color: var(--text-muted);
+        text-align: center;
+    }
 </style>
 
 <script>
@@ -449,9 +493,8 @@ require_once __DIR__ . '/../includes/auth_check.php';
                 partsCache = result.data.parts;
                 customersCache = result.data.customers;
 
-                const partSelect = document.getElementById('sPartSelect');
-                partSelect.innerHTML = '<option value="">-- Select Part --</option>' +
-                    partsCache.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock}) - ${money(p.sale_price)}</option>`).join('');
+                document.getElementById('sPartSearchInput').value = '';
+                document.getElementById('sPartSelect').value = '';
 
                 const custSelect = document.getElementById('sCustomerSelect');
                 custSelect.innerHTML = '<option value="">-- Walk-in Customer --</option>' +
@@ -459,6 +502,106 @@ require_once __DIR__ . '/../includes/auth_check.php';
             }
         } catch (err) { /* silent */ }
     }
+
+    /* ============ SEARCHABLE PARTS DROPDOWN ============ */
+    let partSearchActiveIndex = -1;
+    let partSearchCurrentResults = [];
+
+    function getFilteredParts(term) {
+        const t = term.trim().toLowerCase();
+        if (!t) return partsCache;
+        return partsCache.filter(p => p.name.toLowerCase().includes(t));
+    }
+
+    function renderPartDropdown(term) {
+        const dropdown = document.getElementById('sPartDropdown');
+        const results = getFilteredParts(term);
+        partSearchCurrentResults = results;
+        partSearchActiveIndex = -1;
+
+        if (results.length === 0) {
+            dropdown.innerHTML = '<div class="ck-search-empty">No parts found</div>';
+        } else {
+            dropdown.innerHTML = results.map((p, idx) => `
+                <div class="ck-search-item" data-idx="${idx}" data-id="${p.id}">
+                    <span class="csi-name">${p.name}</span>
+                    <span class="csi-stock">Stock: ${p.stock} - ${money(p.sale_price)}</span>
+                </div>
+            `).join('');
+        }
+
+        dropdown.style.display = 'block';
+    }
+
+    function closePartDropdown() {
+        document.getElementById('sPartDropdown').style.display = 'none';
+        partSearchActiveIndex = -1;
+    }
+
+    function selectPart(part) {
+        document.getElementById('sPartSelect').value = part.id;
+        document.getElementById('sPartSearchInput').value = `${part.name} (Stock: ${part.stock}) - ${money(part.sale_price)}`;
+        closePartDropdown();
+    }
+
+    function highlightPartItem(index) {
+        const items = document.querySelectorAll('#sPartDropdown .ck-search-item');
+        items.forEach(el => el.classList.remove('ck-search-item-active'));
+        if (items[index]) {
+            items[index].classList.add('ck-search-item-active');
+            items[index].scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    document.getElementById('sPartSearchInput').addEventListener('input', function () {
+        document.getElementById('sPartSelect').value = '';
+        renderPartDropdown(this.value);
+    });
+
+    document.getElementById('sPartSearchInput').addEventListener('focus', function () {
+        renderPartDropdown(this.value);
+    });
+
+    document.getElementById('sPartSearchInput').addEventListener('keydown', function (e) {
+        const dropdown = document.getElementById('sPartDropdown');
+        if (dropdown.style.display === 'none') return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (partSearchCurrentResults.length === 0) return;
+            partSearchActiveIndex = (partSearchActiveIndex + 1) % partSearchCurrentResults.length;
+            highlightPartItem(partSearchActiveIndex);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (partSearchCurrentResults.length === 0) return;
+            partSearchActiveIndex = (partSearchActiveIndex - 1 + partSearchCurrentResults.length) % partSearchCurrentResults.length;
+            highlightPartItem(partSearchActiveIndex);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (partSearchActiveIndex >= 0 && partSearchCurrentResults[partSearchActiveIndex]) {
+                selectPart(partSearchCurrentResults[partSearchActiveIndex]);
+            } else if (partSearchCurrentResults.length === 1) {
+                selectPart(partSearchCurrentResults[0]);
+            }
+        } else if (e.key === 'Escape') {
+            closePartDropdown();
+        }
+    });
+
+    document.getElementById('sPartDropdown').addEventListener('click', function (e) {
+        const item = e.target.closest('.ck-search-item');
+        if (!item) return;
+        const idx = parseInt(item.getAttribute('data-idx'));
+        const part = partSearchCurrentResults[idx];
+        if (part) selectPart(part);
+    });
+
+    document.addEventListener('click', function (e) {
+        const wrap = document.getElementById('sPartSearchWrap');
+        if (wrap && !wrap.contains(e.target)) {
+            closePartDropdown();
+        }
+    });
 
     /* ============ QUICK ADD CUSTOMER (Service Page) ============ */
     document.getElementById('btnQuickAddServiceCustomer').addEventListener('click', () => {
@@ -527,7 +670,9 @@ require_once __DIR__ . '/../includes/auth_check.php';
         }
 
         document.getElementById('sPartSelect').value = '';
+        document.getElementById('sPartSearchInput').value = '';
         document.getElementById('sPartQty').value = 1;
+        closePartDropdown();
         renderPartsList();
     });
 
@@ -593,6 +738,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
         document.getElementById('serviceForm').reset();
         selectedParts = [];
         renderPartsList();
+        closePartDropdown();
         await loadFormData();
         document.getElementById('serviceFormOverlay').style.display = 'flex';
     });
