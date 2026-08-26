@@ -3,15 +3,12 @@ require_once __DIR__ . '/../../includes/auth_check.php';
 require_once __DIR__ . '/../../config/db.php';
 header('Content-Type: application/json');
 
-$period = $_GET['period'] ?? 'today'; // today | 7 | 30 | 365
+$period = $_GET['period'] ?? 'today';
 $allowedPeriods = ['today', '7', '30', '365'];
 if (!in_array($period, $allowedPeriods)) {
     $period = 'today';
 }
 
-/**
- * Period অনুযায়ী SQL Date Condition তৈরি করে
- */
 function periodCondition($period, $column) {
     if ($period === 'today') {
         return "DATE($column) = CURDATE()";
@@ -23,16 +20,12 @@ function periodCondition($period, $column) {
 try {
     $settings = $pdo->query("SELECT * FROM settings LIMIT 1")->fetch();
 
-    // ============ Total Purchase (Period ভিত্তিক) ============
     $totalPurchase = $pdo->query("SELECT COALESCE(SUM(total_amount),0) AS val FROM purchases WHERE " . periodCondition($period, 'created_at'))->fetch()['val'];
 
-    // ============ Total Sales (Period ভিত্তিক) ============
     $totalSales = $pdo->query("SELECT COALESCE(SUM(total_amount),0) AS val FROM sales WHERE " . periodCondition($period, 'created_at'))->fetch()['val'];
 
-    // ============ Total Expenses (Period ভিত্তিক) ============
     $totalExpenses = $pdo->query("SELECT COALESCE(SUM(amount),0) AS val FROM expenses WHERE " . periodCondition($period, 'created_at'))->fetch()['val'];
 
-    // ============ Total Profit (Period ভিত্তিক) = Sales - COGS - Expenses ============
     $cogsStmt = $pdo->query("
         SELECT COALESCE(SUM(s.quantity * p.purchase_price), 0) AS cogs
         FROM sales s
@@ -42,13 +35,16 @@ try {
     $cogs = $cogsStmt->fetch()['cogs'];
     $totalProfit = ($totalSales - $cogs) - $totalExpenses;
 
-    // ============ Customer/Supplier Due — সবসময় বর্তমান মোট (Period-independent) ============
     $customerDue = $pdo->query("SELECT COALESCE(SUM(due),0) AS val FROM customers")->fetch()['val'];
     $supplierDue = $pdo->query("SELECT COALESCE(SUM(due),0) AS val FROM suppliers")->fetch()['val'];
 
-    // ============ Recent Purchase/Sales — সবসময় সাম্প্রতিক ১০টা (Scrollable List) ============
-    // FIX: due_amount ও paid_amount কলাম আগে সিলেক্ট হতো না, তাই Recent তালিকায়
-    // বাকিতে কেনা/বেচা হলেও সবসময় "Cash" Badge দেখাচ্ছিল। এখন যোগ করা হলো।
+    $stockStats = $pdo->query("
+        SELECT
+            COALESCE(SUM(stock * purchase_price), 0) AS total_value,
+            SUM(CASE WHEN low_stock_alert IS NOT NULL AND stock <= low_stock_alert THEN 1 ELSE 0 END) AS low_count
+        FROM products
+    ")->fetch();
+
     $recentPurchases = $pdo->query("
         SELECT pu.id, pr.name AS product_name, pu.quantity, pu.total_amount,
                pu.paid_amount, pu.due_amount, pu.payment_type, pu.created_at,
@@ -82,6 +78,8 @@ try {
             "customer_due"      => (float) $customerDue,
             "supplier_due"      => (float) $supplierDue,
             "total_expenses"    => (float) $totalExpenses,
+            "total_stock_value" => (float) $stockStats['total_value'],
+            "low_stock_count"   => (int) $stockStats['low_count'],
             "recent_purchases"  => $recentPurchases,
             "recent_sales"      => $recentSales
         ]

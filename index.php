@@ -44,7 +44,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-    /* ============ TOP BAR ============ */
     .topbar {
         position: fixed; top: 0; left: var(--sidebar-width); right: 0; height: var(--topbar-height);
         background: #ffffff; border-bottom: 1px solid var(--border-color);
@@ -68,39 +67,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .cash-balance-box i { color: var(--primary-blue); font-size: 14px; }
     .cash-balance-box .cb-label { font-size: 11px; color: var(--text-muted); display: block; line-height: 1; margin-bottom: 3px; }
     .cash-balance-box .cb-value { font-size: 14px; font-weight: 600; color: var(--primary-blue); line-height: 1; }
-
-    /* ============ LOW STOCK ALERT BELL ============ */
-    .low-stock-bell {
-        position: relative; width: 40px; height: 40px; border-radius: 10px; background: #fff7ed;
-        border: 1px solid #fed7aa; display: flex; align-items: center; justify-content: center;
-        cursor: pointer; color: #d97706; font-size: 15px; transition: all 0.2s ease; flex-shrink: 0;
-    }
-    .low-stock-bell:hover { background: #ffedd5; }
-    .low-stock-bell .lsb-badge {
-        position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff;
-        font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px;
-        display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid #fff;
-    }
-    .low-stock-row {
-        display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
-        border-bottom: 1px solid var(--border-color); font-size: 13px;
-    }
-    .low-stock-row:last-child { border-bottom: none; }
-
-    /* মোবাইল/ট্যাবলেট ভিউতে Topbar Bell লুকিয়ে Profile Dropdown-এর
-       ভেতরে একটা মেনু আইটেম হিসেবে দেখানো হয় (জায়গা বাঁচাতে) */
-    .low-stock-menu-item { display: none; align-items: center; gap: 10px; }
-    @media (min-width: 992px) {
-        .low-stock-menu-item { display: none !important; }
-    }
-    @media (max-width: 991px) {
-        .low-stock-bell { display: none !important; }
-    }
-    .lsm-badge {
-        margin-left: auto; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700;
-        min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center;
-        justify-content: center; padding: 0 5px;
-    }
 
     .profile-menu { position: relative; }
     .profile-btn {
@@ -126,7 +92,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .profile-dropdown a:hover { background: var(--light-blue); color: var(--primary-blue); }
     .profile-dropdown a.logout-link:hover { background: #fef2f2; color: var(--danger); }
 
-    /* ============ SIDEBAR (DESKTOP) ============ */
     .sidebar {
         position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh;
         background: var(--sidebar-bg); border-right: 1px solid var(--border-color);
@@ -150,14 +115,12 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .sidebar-nav .nav-item:hover { background: var(--light-blue); color: var(--primary-blue); }
     .sidebar-nav .nav-item.active { background: var(--primary-blue); color: #fff; }
 
-    /* ============ MAIN CONTENT ============ */
     .main-content {
         margin-left: var(--sidebar-width); margin-top: var(--topbar-height); padding: 26px;
         min-height: calc(100vh - var(--topbar-height)); transition: margin-left 0.2s ease;
     }
     #pageContent { position: relative; }
 
-    /* ============ BOTTOM NAV (TABLET / MOBILE) ============ */
     .bottom-nav {
         display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottomnav-height);
         background: #ffffff; border-top: 1px solid var(--border-color); z-index: 1100;
@@ -170,7 +133,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .bottom-nav .bn-item i { font-size: 17px; }
     .bottom-nav .bn-item.active { color: var(--primary-blue); }
 
-    /* ============ SKELETON LOADING ============ */
     .skeleton {
         background: linear-gradient(90deg, #eef2f8 25%, #f7f9fc 50%, #eef2f8 75%);
         background-size: 200% 100%; animation: skeleton-loading 1.4s ease infinite; border-radius: 8px;
@@ -179,12 +141,10 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .skeleton-card { height: 100px; margin-bottom: 16px; }
     .skeleton-row { height: 46px; margin-bottom: 10px; }
 
-    /* ============ GLOBAL: PAGE HEADER ============ */
     .page-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
     .page-head h4 { font-weight: 600; margin: 0; }
     .page-head p { color: var(--text-muted); font-size: 13px; margin: 0; }
 
-    /* ============ GLOBAL CARD / BUTTON ============ */
     .ck-card { background: #fff; border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; }
     .ck-btn {
         border: none; border-radius: 10px; padding: 10px 18px; font-size: 13px; font-weight: 600;
@@ -203,7 +163,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
         align-items: center; justify-content: center; cursor: pointer; font-size: 12px; transition: all 0.2s ease;
     }
 
-    /* ============ GLOBAL: SEARCH INPUT ============ */
     .input-group-search { position: relative; }
     .input-group-search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
     .input-group-search input {
@@ -212,7 +171,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     }
     .input-group-search input:focus { border-color: var(--primary-blue); }
 
-    /* ============ GLOBAL: TABLE ============ */
     .ck-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .ck-table thead th {
         text-align: left; padding: 14px 18px; background: #f8fafc; color: var(--text-muted);
@@ -223,7 +181,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .ck-table tbody tr:last-child td { border-bottom: none; }
     .ck-table tbody tr:hover { background: #fafbfd; }
 
-    /* ============ GLOBAL: MODAL ============ */
     .ck-modal-overlay {
         position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 2000;
         display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -238,7 +195,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .ck-modal-close { cursor: pointer; color: var(--text-muted); font-size: 16px; transition: color 0.2s ease; }
     .ck-modal-close:hover { color: var(--danger); }
 
-    /* ============ GLOBAL: FORM ELEMENTS ============ */
     .ck-label { font-size: 12px; font-weight: 500; color: var(--text-dark); display: block; margin-bottom: 6px; }
     .ck-input, .ck-select {
         width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 10px;
@@ -264,7 +220,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     }
     .ck-filter-btn.active { background: var(--primary-blue); border-color: var(--primary-blue); color: #fff; }
 
-    /* ============ GLOBAL: LIST ROWS ============ */
     .list-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
     .list-row:last-child { border-bottom: none; }
     .list-row .lr-title { font-weight: 500; color: var(--text-dark); }
@@ -273,7 +228,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     .badge-cash { background: #f0fdf4; color: #16a34a; font-size: 10px; padding: 3px 8px; border-radius: 6px; }
     .badge-due { background: #fff7ed; color: #d97706; font-size: 10px; padding: 3px 8px; border-radius: 6px; }
 
-    /* ============ RESPONSIVE BREAKPOINTS ============ */
     @media (min-width: 992px) { .profile-name { display: block; } }
 
     @media (max-width: 991px) {
@@ -335,10 +289,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     </div>
 
     <div class="topbar-right">
-        <div class="low-stock-bell" id="lowStockBell" title="Low Stock Alert" style="display:none;">
-            <i class="fa-solid fa-bell"></i>
-            <span class="lsb-badge" id="lowStockBadge">0</span>
-        </div>
         <div class="cash-balance-box">
             <i class="fa-solid fa-sack-dollar"></i>
             <div>
@@ -354,9 +304,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
                 <i class="fa-solid fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
             </button>
             <div class="profile-dropdown" id="profileDropdown">
-                <a class="low-stock-menu-item" id="lowStockMenuItem">
-                    <i class="fa-solid fa-bell" style="color:#d97706;"></i> Low Stock Alert <span class="lsm-badge" id="lowStockMenuBadge">0</span>
-                </a>
                 <a data-page="settings"><i class="fa-solid fa-gear"></i> <?php echo lang('settings'); ?></a>
                 <a class="logout-link" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> <?php echo lang('logout'); ?></a>
             </div>
@@ -379,17 +326,6 @@ $currentLang = $_SESSION['language'] ?? 'en';
     <div class="bn-item" data-page="service"><i class="fa-solid fa-screwdriver-wrench"></i><span>Service</span></div>
     <div class="bn-item" data-page="expenses"><i class="fa-solid fa-receipt"></i><span><?php echo lang('expenses'); ?></span></div>
 </nav>
-
-<!-- ============ MODAL: LOW STOCK ALERT ============ -->
-<div class="ck-modal-overlay" id="lowStockOverlay" style="display:none;">
-    <div class="ck-modal-box" style="max-width:420px;">
-        <div class="ck-modal-header">
-            <h5><i class="fa-solid fa-triangle-exclamation" style="color:var(--warning);"></i> Low Stock Alert</h5>
-            <i class="fa-solid fa-xmark ck-modal-close" data-close="lowStockOverlay"></i>
-        </div>
-        <div id="lowStockListBody"></div>
-    </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -479,59 +415,6 @@ function ckConfirm(text) {
     });
 }
 
-/* ============ LOW STOCK ALERT (Global — সব Page-এ Topbar-এ থাকবে) ============ */
-const categoryLabelMap = { mobile: 'Mobile', accessory: 'Accessory', part: 'Part' };
-
-async function loadLowStockAlert() {
-    try {
-        const res = await fetch('api/dashboard/low_stock.php');
-        const result = await res.json();
-        if (result.status !== 'success') return;
-
-        const bell = document.getElementById('lowStockBell');
-        const badge = document.getElementById('lowStockBadge');
-        const menuItem = document.getElementById('lowStockMenuItem');
-        const menuBadge = document.getElementById('lowStockMenuBadge');
-
-        if (result.count > 0) {
-            badge.textContent = result.count > 99 ? '99+' : result.count;
-            bell.style.display = 'flex';
-            menuBadge.textContent = result.count > 99 ? '99+' : result.count;
-            menuItem.style.display = 'flex';
-        } else {
-            bell.style.display = 'none';
-            menuItem.style.display = 'none';
-        }
-
-        const listBody = document.getElementById('lowStockListBody');
-        if (result.data.length === 0) {
-            listBody.innerHTML = `<p class="text-muted text-center py-3" style="font-size:13px;">No low stock items 🎉</p>`;
-        } else {
-            listBody.innerHTML = result.data.map(p => `
-                <div class="low-stock-row">
-                    <div>
-                        <div style="font-weight:500;">${p.name}</div>
-                        <div style="font-size:11px;color:var(--text-muted);">${categoryLabelMap[p.category] || 'Not Set'} • Alert at ${p.low_stock_alert}</div>
-                    </div>
-                    <span class="badge-due" style="font-size:11px;">${p.stock} left</span>
-                </div>
-            `).join('');
-        }
-    } catch (err) { /* silent */ }
-}
-
-document.getElementById('lowStockBell').addEventListener('click', () => {
-    document.getElementById('lowStockOverlay').style.display = 'flex';
-});
-document.getElementById('lowStockMenuItem').addEventListener('click', (e) => {
-    e.stopPropagation();
-    document.getElementById('profileDropdown').classList.remove('show');
-    document.getElementById('lowStockOverlay').style.display = 'flex';
-});
-document.querySelectorAll('[data-close="lowStockOverlay"]').forEach(el => {
-    el.addEventListener('click', () => { document.getElementById('lowStockOverlay').style.display = 'none'; });
-});
-
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', () => loadPage(el.dataset.page)));
 
 const profileBtn = document.getElementById('profileBtn');
@@ -560,7 +443,6 @@ window.addEventListener('DOMContentLoaded', () => {
     gsap.from('.topbar', { y: -16, opacity: 0, duration: 0.5, ease: "power2.out" });
     const initialPage = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
     loadPage(initialPage, false);
-    loadLowStockAlert();
 });
 </script>
 

@@ -114,7 +114,6 @@ return [
     "withdraw_cash" => "Withdraw Cash",
     "you" => "You",
 
-    // ============ নতুন যোগ করা Keys ============
     "add_user" => "Add User",
     "role" => "Role",
     "role_admin" => "Admin",
@@ -130,4 +129,11 @@ return [
     "invalid_backup_file" => "Invalid or corrupted backup file",
     "data_imported" => "Data imported successfully",
     "all_data_deleted" => "All business data has been deleted",
+
+    "total_stock_value" => "Total Stock Value",
+    "stock_list" => "Stock List",
+    "low_stock" => "Low Stock",
+    "stock_value" => "Stock Value",
+    "all_products" => "All Products",
+    "category" => "Category",
 ];
