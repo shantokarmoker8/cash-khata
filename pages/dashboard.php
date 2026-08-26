@@ -358,6 +358,10 @@ require_once __DIR__ . '/../includes/auth_check.php';
     }
     .period-select:focus { border-color: var(--primary-blue); }
 
+    #summaryCardsRow {
+        justify-content: center;
+    }
+
     /* ============ Summary Cards ============ */
     .summary-card {
         background: #fff; border: 1px solid var(--border-color); border-radius: 14px;
@@ -411,11 +415,12 @@ require_once __DIR__ . '/../includes/auth_check.php';
         .dash-header-text p { font-size: 10.5px; }
         .period-select { padding: 7px 8px; font-size: 11px; }
 
-        .summary-card { flex-direction: column; text-align: center; padding: 8px 4px; gap: 4px; }
-        .summary-card .sc-icon { width: 26px; height: 26px; font-size: 11px; }
-        .summary-card .sc-content { align-items: center; }
-        .summary-card .sc-label { font-size: 8.5px; white-space: normal; }
-        .summary-card .sc-value { font-size: 11px; }
+        #summaryCardsRow { --bs-gutter-x: 0.4rem; row-gap: 6px; }
+        .summary-card { flex-direction: column; text-align: center; padding: 6px 2px; gap: 3px; border-radius: 10px; }
+        .summary-card .sc-icon { width: 20px; height: 20px; font-size: 9px; border-radius: 6px; }
+        .summary-card .sc-content { align-items: center; gap: 1px; }
+        .summary-card .sc-label { font-size: 7px; white-space: normal; line-height: 1.15; }
+        .summary-card .sc-value { font-size: 9.5px; }
 
         .recent-grid {
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
@@ -428,6 +433,12 @@ require_once __DIR__ . '/../includes/auth_check.php';
         .dash-header-text h4 { font-size: 14px; }
         .dash-header-text p { display: none; }
         .period-select { padding: 6px 6px; font-size: 10px; }
+
+        #summaryCardsRow { --bs-gutter-x: 0.3rem; row-gap: 5px; }
+        .summary-card { padding: 5px 2px; }
+        .summary-card .sc-icon { width: 18px; height: 18px; font-size: 8px; }
+        .summary-card .sc-label { font-size: 6.5px; }
+        .summary-card .sc-value { font-size: 8.5px; }
     }
 
     @media (max-width: 480px) {
@@ -492,7 +503,7 @@ require_once __DIR__ . '/../includes/auth_check.php';
 
             const cardsRow = document.getElementById('summaryCardsRow');
             cardsRow.innerHTML = cardMeta.map(m => `
-                <div class="col-6 col-md-3">
+                <div class="col-4 col-lg-3">
                     <div class="summary-card" data-type="${m.type}" data-label="${m.label}">
                         <div class="sc-icon" style="background:${m.bg};color:${m.color};">
                             <i class="fa-solid ${m.icon}"></i>
