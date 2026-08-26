@@ -33,7 +33,30 @@ try {
         WHERE " . periodCondition($period, 's.created_at')
     );
     $cogs = $cogsStmt->fetch()['cogs'];
-    $totalProfit = ($totalSales - $cogs) - $totalExpenses;
+    $salesProfit = $totalSales - $cogs;
+
+    $serviceTotalsStmt = $pdo->query("
+        SELECT COALESCE(SUM(service_charge),0) AS service_charge_total,
+               COALESCE(SUM(parts_total),0) AS parts_total_sum,
+               COALESCE(SUM(discount_amount),0) AS discount_total
+        FROM services
+        WHERE " . periodCondition($period, 'created_at')
+    );
+    $serviceTotals = $serviceTotalsStmt->fetch();
+
+    $servicePartsCogsStmt = $pdo->query("
+        SELECT COALESCE(SUM(sp.quantity * pr.purchase_price), 0) AS cogs
+        FROM service_parts sp
+        INNER JOIN services sv ON sv.id = sp.service_id
+        INNER JOIN products pr ON pr.id = sp.product_id
+        WHERE " . periodCondition($period, 'sv.created_at')
+    );
+    $servicePartsCogs = $servicePartsCogsStmt->fetch()['cogs'];
+
+    $servicePartsProfit = $serviceTotals['parts_total_sum'] - $servicePartsCogs;
+    $serviceProfit = $serviceTotals['service_charge_total'] + $servicePartsProfit - $serviceTotals['discount_total'];
+
+    $totalProfit = $salesProfit + $serviceProfit - $totalExpenses;
 
     $customerDue = $pdo->query("SELECT COALESCE(SUM(due),0) AS val FROM customers")->fetch()['val'];
     $supplierDue = $pdo->query("SELECT COALESCE(SUM(due),0) AS val FROM suppliers")->fetch()['val'];
